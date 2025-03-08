@@ -1,44 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import './App.css';
 
 const App = () => {
-  const [data, setData] = useState([
+  const initialData = [
     { date: "2022-09-01", views: 100, article: "Article 1" },
     { date: "2023-09-01", views: 100, article: "Article 1" },
     { date: "2023-09-02", views: 150, article: "Article 2" },
     { date: "2023-09-02", views: 120, article: "Article 3" },
     { date: "2020-09-03", views: 200, article: "Article 4" }
-  ]);
+  ];
 
-  const sortByDate = () => {
-    const sortedData = [...data].sort((a, b) => {
+  const [data, setData] = useState(initialData);
+  const [sortType, setSortType] = useState(null);
+
+  const sortedData = useMemo(() => {
+    if (!sortType) return data;
+    return [...data].sort((a, b) => {
       const dateA = new Date(a.date);
       const dateB = new Date(b.date);
-      if (dateB - dateA === 0) {
-        return b.views - a.views;
+      if (sortType === 'date') {
+        return dateB - dateA || b.views - a.views;
+      } else if (sortType === 'views') {
+        return b.views - a.views || dateB - dateA;
       }
-      return dateB - dateA;
+      return 0;
     });
-    setData(sortedData);
-  };
-
-  const sortByViews = () => {
-    const sortedData = [...data].sort((a, b) => {
-      if (b.views - a.views === 0) {
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
-        return dateB - dateA;
-      }
-      return b.views - a.views;
-    });
-    setData(sortedData);
-  };
+  }, [data, sortType]);
 
   return (
     <div className="app">
       <h1>Date and Views Table</h1>
-      <button onClick={sortByDate}>Sort by Date</button>
-      <button onClick={sortByViews}>Sort by Views</button>
+      <button onClick={() => setSortType('date')}>Sort by Date</button>
+      <button onClick={() => setSortType('views')}>Sort by Views</button>
       <table>
         <thead>
           <tr>
@@ -48,7 +41,7 @@ const App = () => {
           </tr>
         </thead>
         <tbody>
-          {data.map((item, index) => (
+          {sortedData.map((item, index) => (
             <tr key={index}>
               <td>{item.date}</td>
               <td>{item.views}</td>
